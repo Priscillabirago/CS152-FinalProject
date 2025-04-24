@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriLogic - Nutrition Expert System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: #212529;
+            font-family: Arial, sans-serif;
+        }
+        .header {
+            background-color: #198754;
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 10px 10px;
+        }
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            background-color: #f1f1f1;
+            font-size: 0.9rem;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-primary {
+            background-color: #198754;
+            border-color: #198754;
+        }
+        .btn-primary:hover {
+            background-color: #156a45;
+            border-color: #156a45;
+        }
+        .symptom-card, .diet-card {
+            height: 100%;
+        }
+        .results-section {
+            display: none;
+            margin-top: 2rem;
+        }
+        .confidence-bar {
+            height: 10px;
+            border-radius: 5px;
+            margin-top: 5px;
+            background-color: #e9ecef;
+        }
+        .confidence-level {
+            height: 100%;
+            border-radius: 5px;
+            background-color: #198754;
+        }
+        .tab-content {
+            padding: 20px 0;
+        }
+        .tab-pane {
+            padding: 15px;
+            background-color: white;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .nav-tabs .nav-link.active {
+            font-weight: bold;
+            color: #198754;
+            border-bottom: 2px solid #198754;
+        }
+        .nav-tabs .nav-link {
+            color: #6c757d;
+        }
+        #nlInput {
+            height: 150px;
+        }
+        .confidence-text {
+            font-weight: bold;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header text-center">
+        <h1>NutriLogic</h1>
+        <p class="lead">Student Nutrition Expert System</p>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-12 mb-4">
+                <ul class="nav nav-tabs" id="inputTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="checklist-tab" data-bs-toggle="tab" data-bs-target="#checklist" type="button" role="tab" aria-controls="checklist" aria-selected="true">Checklist Input</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="natural-tab" data-bs-toggle="tab" data-bs-target="#natural" type="button" role="tab" aria-controls="natural" aria-selected="false">Natural Language</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="inputTabsContent">
+                    <!-- Checklist Input Tab -->
+                    <div class="tab-pane fade show active" id="checklist" role="tabpanel" aria-labelledby="checklist-tab">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card symptom-card">
+                                    <div class="card-header bg-light">
+                                        <h5>Symptoms</h5>
+                                        <p class="text-muted small">Select any symptoms you're experiencing</p>
+                                    </div>
+                                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                        {% for symptom in symptoms %}
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input symptom-checkbox" type="checkbox" value="{{ symptom.id }}" id="symptom-{{ symptom.id }}">
+                                            <label class="form-check-label" for="symptom-{{ symptom.id }}">
+                                                {{ symptom.name }}
+                                                <span class="text-muted small d-block">{{ symptom.description }}</span>
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card diet-card">
+                                    <div class="card-header bg-light">
+                                        <h5>Dietary Habits</h5>
+                                        <p class="text-muted small">Select any habits that apply to you</p>
+                                    </div>
+                                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                        {% for habit in diet_habits %}
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input diet-habit-checkbox" type="checkbox" value="{{ habit.id }}" id="diet-habit-{{ habit.id }}">
+                                            <label class="form-check-label" for="diet-habit-{{ habit.id }}">
+                                                {{ habit.name }}
+                                                <span class="text-muted small d-block">{{ habit.description }}</span>
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Natural Language Input Tab -->
+                    <div class="tab-pane fade" id="natural" role="tabpanel" aria-labelledby="natural-tab">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5>Describe Your Symptoms and Diet</h5>
+                                <p class="text-muted small">Tell us about how you feel and your eating habits in your own words</p>
+                            </div>
+                            <div class="card-body">
+                                <textarea id="nlInput" class="form-control mb-3" placeholder="Example: I feel tired most days and I've been having headaches. I tend to skip breakfast and drink a lot of coffee..."></textarea>
+                                <div class="mt-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card mb-3">
+                                                <div class="card-header bg-light">Detected Symptoms</div>
+                                                <div class="card-body">
+                                                    <ul id="detectedSymptoms" class="list-group list-group-flush">
+                                                        <li class="list-group-item text-muted">No symptoms detected yet</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card mb-3">
+                                                <div class="card-header bg-light">Detected Dietary Habits</div>
+                                                <div class="card-body">
+                                                    <ul id="detectedDietHabits" class="list-group list-group-flush">
+                                                        <li class="list-group-item text-muted">No dietary habits detected yet</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 text-center mt-3 mb-5">
+                <button id="analyzeBtn" class="btn btn-primary btn-lg">Analyze Nutrition</button>
+            </div>
+            
+            <!-- Loading Spinner -->
+            <div class="loading" id="loadingSpinner">
+                <div class="spinner-border loading-spinner text-success" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-muted">Analyzing your nutrition profile...</p>
+            </div>
+            
+            <!-- Results Section -->
+            <div id="resultsSection" class="results-section">
+                <h2 class="text-center mb-4">Nutrition Analysis Results</h2>
+                <div id="resultsContainer">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer text-center">
+        <div class="container">
+            <p>NutriLogic Expert System &copy; 2025</p>
+            <p class="small text-muted">This application is for educational purposes only and should not replace professional medical or nutritional advice.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const nlInput = document.getElementById('nlInput');
+            const detectedSymptoms = document.getElementById('detectedSymptoms');
+            const detectedDietHabits = document.getElementById('detectedDietHabits');
+            
+            // Listen for changes in the natural language input to detect symptoms and habits
+            nlInput.addEventListener('input', debounce(processNaturalLanguageInput, 700));
+            
+            // Analyze button click handler
+            analyzeBtn.addEventListener('click', () => {
+                // Show loading spinner
+                loadingSpinner.style.display = 'block';
+                resultsSection.style.display = 'none';
+                
+                let selectedSymptoms = [];
+                let selectedDietHabits = [];
+                
+                // Determine which input method is active
+                const activeTab = document.querySelector('.tab-pane.active');
+                
+                if (activeTab.id === 'checklist') {
+                    // Get selected symptoms from checkboxes
+                    document.querySelectorAll('.symptom-checkbox:checked').forEach(checkbox => {
+                        selectedSymptoms.push(checkbox.value);
+                    });
+                    
+                    // Get selected diet habits from checkboxes
+                    document.querySelectorAll('.diet-habit-checkbox:checked').forEach(checkbox => {
+                        selectedDietHabits.push(checkbox.value);
+                    });
+                } else if (activeTab.id === 'natural') {
+                    // Get detected symptoms and habits from natural language
+                    const symptomItems = detectedSymptoms.querySelectorAll('li[data-id]');
+                    const dietHabitItems = detectedDietHabits.querySelectorAll('li[data-id]');
+                    
+                    symptomItems.forEach(item => {
+                        selectedSymptoms.push(item.getAttribute('data-id'));
+                    });
+                    
+                    dietHabitItems.forEach(item => {
+                        selectedDietHabits.push(item.getAttribute('data-id'));
+                    });
+                }
+                
+                // If nothing selected, show alert and stop
+                if (selectedSymptoms.length === 0 && selectedDietHabits.length === 0) {
+                    loadingSpinner.style.display = 'none';
+                    alert('Please select at least one symptom or dietary habit.');
+                    return;
+                }
+                
+                // Send data to the server
+                fetch('/diagnose', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        symptoms: selectedSymptoms,
+                        diet_habits: selectedDietHabits
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading spinner
+                    loadingSpinner.style.display = 'none';
+                    
+                    if (data.success) {
+                        displayResults(data.diagnoses);
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    loadingSpinner.style.display = 'none';
+                    console.error('Error:', error);
+                    alert('An error occurred while analyzing your data. Please try again.');
+                });
+            });
+            
+            // Function to display results
+            function displayResults(diagnoses) {
+                resultsContainer.innerHTML = '';
+                
+                // Sort results by confidence (highest first)
+                diagnoses.sort((a, b) => b.percentage - a.percentage);
+                
+                diagnoses.forEach(diagnosis => {
+                    const confidenceClass = getConfidenceClass(diagnosis.percentage);
+                    
+                    const diagnosisCard = document.createElement('div');
+                    diagnosisCard.className = 'card mb-3';
+                    diagnosisCard.innerHTML = `
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>${diagnosis.issue}</h5>
+                            <span class="badge ${confidenceClass}">${diagnosis.confidence} (${diagnosis.percentage}%)</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="confidence-bar">
+                                <div class="confidence-level" style="width: ${diagnosis.percentage}%"></div>
+                            </div>
+                            <p class="mt-3">${diagnosis.advice}</p>
+                        </div>
+                    `;
+                    
+                    resultsContainer.appendChild(diagnosisCard);
+                });
+                
+                // Show results section
+                resultsSection.style.display = 'block';
+                
+                // Scroll to results
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Determine the color class based on confidence level
+            function getConfidenceClass(percentage) {
+                if (percentage >= 80) return 'bg-success';
+                if (percentage >= 60) return 'bg-primary';
+                if (percentage >= 40) return 'bg-warning';
+                return 'bg-secondary';
+            }
+            
+            // Process natural language input to detect symptoms and habits
+            function processNaturalLanguageInput() {
+                const input = nlInput.value.trim();
+                
+                if (input.length < 10) {
+                    // Clear detected items if input is too short
+                    detectedSymptoms.innerHTML = '<li class="list-group-item text-muted">No symptoms detected yet</li>';
+                    detectedDietHabits.innerHTML = '<li class="list-group-item text-muted">No dietary habits detected yet</li>';
+                    return;
+                }
+                
+                fetch('/parse_natural_language', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: input }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update detected symptoms
+                        if (data.symptoms.length > 0) {
+                            detectedSymptoms.innerHTML = '';
+                            data.symptoms.forEach(symptom => {
+                                const li = document.createElement('li');
+                                li.className = 'list-group-item';
+                                li.textContent = symptom.name;
+                                li.setAttribute('data-id', symptom.id);
+                                detectedSymptoms.appendChild(li);
+                            });
+                        } else {
+                            detectedSymptoms.innerHTML = '<li class="list-group-item text-muted">No symptoms detected</li>';
+                        }
+                        
+                        // Update detected diet habits
+                        if (data.diet_habits.length > 0) {
+                            detectedDietHabits.innerHTML = '';
+                            data.diet_habits.forEach(habit => {
+                                const li = document.createElement('li');
+                                li.className = 'list-group-item';
+                                li.textContent = habit.name;
+                                li.setAttribute('data-id', habit.id);
+                                detectedDietHabits.appendChild(li);
+                            });
+                        } else {
+                            detectedDietHabits.innerHTML = '<li class="list-group-item text-muted">No dietary habits detected</li>';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+            
+            // Helper function to debounce input events
+            function debounce(func, delay) {
+                let timeout;
+                return function() {
+                    const context = this;
+                    const args = arguments;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(context, args), delay);
+                };
+            }
+        });
+    </script>
+</body>
+</html> 
