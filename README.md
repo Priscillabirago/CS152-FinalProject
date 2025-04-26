@@ -95,6 +95,13 @@ This expert system is specially designed with college students in mind, addressi
 - Irregular meal schedules due to classes
 - Study-related eating habits
 
+
+### Limitations and Future Improvements
+
+1. **Knowledge base scope**: While comprehensive, the knowledge base could be expanded to include more rare nutritional issues or more specific symptoms.
+
+2. **Natural language processing refinement**: While the system can process natural language input, the NLP component could be further refined to handle more complex sentence structures and varied vocabulary.
+
 ## Troubleshooting
 
 - If you encounter `ERROR: atom_chars/2: Arguments are not sufficiently instantiated`, make sure SWI-Prolog is correctly installed and in your PATH.
@@ -107,6 +114,6 @@ This expert system is specially designed with college students in mind, addressi
   ```
 - On Windows, you may need to copy `libswipl.dll` from your SWI-Prolog installation to your Python directory or add the SWI-Prolog bin directory to your PATH.
 
-## Note
+## Conclusion
 
-This is an educational tool and not a replacement for professional medical or nutritional advice. Always consult a healthcare provider for serious health concerns. 
+NutriLogic demonstrates how rule-based expert systems with certainty factors can provide valuable nutrition-related insights in an accessible format for college students. By collecting user-reported symptoms and dietary habits through both structured inputs and natural language, applying logical reasoning, and communicating results with appropriate uncertainty levels, the system bridges the gap between general onl
